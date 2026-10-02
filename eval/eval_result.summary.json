@@ -1,0 +1,96 @@
+{
+  "created_at": "2026-10-02T09:35:28.662123+00:00",
+  "questions": 5,
+  "dataset_sha256": "f15c0fbacb6f2f3006ef9b995958496b19d5b6b591186696e79ae2d11ff58ee7",
+  "user_id": "reader",
+  "kb_ids": [
+    "kb_education"
+  ],
+  "ragas_version": "0.4.3",
+  "generation_model": "qwen3-8b",
+  "judge_model": "qwen3-8b",
+  "embedding_model": "BAAI/bge-m3",
+  "embedding_revision": "sha256:a7fe8ac0addf5ad6765663478d5306fcd591aa9b0f0120ffc43af52b3dfe9318",
+  "metric_means": {
+    "Faithfulness": 1.0,
+    "Answer Relevancy": 0.8313960572713042,
+    "Context Prcision": 0.9999999999250001,
+    "Context Recall": 1.0,
+    "Answer Correctness": 0.824086134128357
+  },
+  "missing_scores": {
+    "Faithfulness": 0,
+    "Answer Relevancy": 0,
+    "Context Prcision": 0,
+    "Context Recall": 0,
+    "Answer Correctness": 0
+  },
+  "traces": [
+    {
+      "message_id": "msg_edf00670c3932219ecb5943f",
+      "thread_id": "reader:chat_0e5d2ef0d20d0e7dc406e1de:msg_edf00670c3932219ecb5943f",
+      "reranked_docs": [
+        "ver_55dd8d1857c8a4416caf62d9_3",
+        "ver_55dd8d1857c8a4416caf62d9_2",
+        "ver_55dd8d1857c8a4416caf62d9_7",
+        "ver_55dd8d1857c8a4416caf62d9_6",
+        "ver_55dd8d1857c8a4416caf62d9_5"
+      ],
+      "degraded": []
+    },
+    {
+      "message_id": "msg_b2318d6bba79f15f1fa7b597",
+      "thread_id": "reader:chat_dcf471a73672cf90db9a518a:msg_b2318d6bba79f15f1fa7b597",
+      "reranked_docs": [
+        "ver_55dd8d1857c8a4416caf62d9_3",
+        "ver_55dd8d1857c8a4416caf62d9_6",
+        "ver_55dd8d1857c8a4416caf62d9_7",
+        "ver_55dd8d1857c8a4416caf62d9_5",
+        "ver_55dd8d1857c8a4416caf62d9_2"
+      ],
+      "degraded": []
+    },
+    {
+      "message_id": "msg_7d65083ca2ca07f3fc498011",
+      "thread_id": "reader:chat_ef696bb907c5ef95eb4b07f2:msg_7d65083ca2ca07f3fc498011",
+      "reranked_docs": [
+        "ver_55dd8d1857c8a4416caf62d9_5",
+        "ver_55dd8d1857c8a4416caf62d9_4",
+        "ver_55dd8d1857c8a4416caf62d9_2",
+        "ver_55dd8d1857c8a4416caf62d9_7",
+        "ver_55dd8d1857c8a4416caf62d9_0"
+      ],
+      "degraded": []
+    },
+    {
+      "message_id": "msg_36a417635aaa93a010e8f9bf",
+      "thread_id": "reader:chat_1a6d80b053f0e699549d31c1:msg_36a417635aaa93a010e8f9bf",
+      "reranked_docs": [
+        "ver_55dd8d1857c8a4416caf62d9_5",
+        "ver_55dd8d1857c8a4416caf62d9_4",
+        "ver_55dd8d1857c8a4416caf62d9_6",
+        "ver_55dd8d1857c8a4416caf62d9_7",
+        "ver_55dd8d1857c8a4416caf62d9_0"
+      ],
+      "degraded": []
+    },
+    {
+      "message_id": "msg_bd968f8dacfdd7ed42cec488",
+      "thread_id": "reader:chat_a45f4b23a3e969db51c7e3f0:msg_bd968f8dacfdd7ed42cec488",
+      "reranked_docs": [
+        "ver_55dd8d1857c8a4416caf62d9_7",
+        "ver_55dd8d1857c8a4416caf62d9_0",
+        "ver_55dd8d1857c8a4416caf62d9_2",
+        "ver_55dd8d1857c8a4416caf62d9_6",
+        "ver_55dd8d1857c8a4416caf62d9_5"
+      ],
+      "degraded": []
+    }
+  ],
+  "limitations": [
+    "小型教育演示测试集不代表生产效果",
+    "默认判分与生成使用同一模型，可能存在偏差",
+    "Context Prcision 是输出列名；实际指标为 Ragas Context Precision",
+    "NaN 表示评估未产生有效分数；均值只统计有效分数"
+  ]
+}

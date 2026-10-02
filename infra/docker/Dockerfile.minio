@@ -1,0 +1,13 @@
+# Build an internally managed image from a reviewed fixed source release.
+FROM golang:1.25.3-alpine AS build
+ARG MINIO_RELEASE=RELEASE.2025-10-15T17-29-55Z
+RUN apk add --no-cache git && git clone --depth 1 --branch "$MINIO_RELEASE" https://github.com/minio/minio.git /src
+WORKDIR /src
+RUN CGO_ENABLED=0 go build -trimpath -o /out/minio .
+FROM alpine:3.22.2
+RUN apk add --no-cache ca-certificates curl && adduser -D -u 10001 minio
+COPY --from=build /out/minio /usr/local/bin/minio
+RUN mkdir /data && chown minio /data
+USER minio
+ENTRYPOINT ["minio"]
+CMD ["server", "/data", "--console-address", ":9001"]

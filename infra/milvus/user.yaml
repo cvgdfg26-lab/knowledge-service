@@ -1,0 +1,4 @@
+common:
+  security:
+    authorizationEnabled: true
+    defaultRootPassword: Milvus

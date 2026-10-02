@@ -1,0 +1,12 @@
+FROM knowledge-backend:0.1.0
+USER root
+WORKDIR /app
+COPY backend/pyproject.toml /app/backend/pyproject.toml
+COPY backend/src /app/backend/src
+COPY eval/pyproject.toml eval/uv.lock /app/eval/
+RUN python -c 'import pathlib; p=pathlib.Path("/app/eval/uv.lock"); p.write_text(p.read_text().replace("https://files.pythonhosted.org", "https://mirrors.cloud.tencent.com/pypi"))'
+RUN uv sync --project /app/eval --frozen --no-dev --python /usr/local/bin/python
+COPY eval/eval.py /app/eval/eval.py
+ENV RAGAS_DO_NOT_TRACK=true LANGSMITH_TRACING=false HF_HOME=/tmp/huggingface XDG_CACHE_HOME=/tmp/cache
+USER 10001:10001
+ENTRYPOINT ["/app/eval/.venv/bin/python", "/app/eval/eval.py"]

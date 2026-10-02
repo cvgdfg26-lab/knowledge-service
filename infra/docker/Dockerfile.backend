@@ -1,0 +1,15 @@
+FROM python:3.12.12-slim
+ARG PYPI_INDEX_URL=https://pypi.org/simple
+ARG PYPI_FILES_BASE=https://files.pythonhosted.org
+RUN pip install --no-cache-dir --index-url "$PYPI_INDEX_URL" uv==0.9.18
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 UV_LINK_MODE=copy
+WORKDIR /app/backend
+COPY backend/pyproject.toml backend/uv.lock ./
+COPY backend/src ./src
+RUN python -c 'import os,pathlib; p=pathlib.Path("uv.lock"); p.write_text(p.read_text().replace("https://files.pythonhosted.org", os.environ["PYPI_FILES_BASE"]))'
+RUN uv sync --frozen --no-dev --python /usr/local/bin/python
+COPY frontend /app/frontend
+ENV PATH="/app/backend/.venv/bin:$PATH" FRONTEND_PATH=/app/frontend
+RUN groupadd -g 10001 knowledge && useradd -u 10001 -g knowledge -M knowledge
+USER 10001:10001
+CMD ["uvicorn", "knowledge_service.query_app:app", "--host", "0.0.0.0", "--port", "8001"]

@@ -1,0 +1,6 @@
+# CUDA torch comes from the fixed base image. Validate/build on the target GPU host.
+FlagEmbedding==1.3.5
+transformers==4.51.3
+fastapi==0.142.2
+uvicorn==0.54.0
+numpy==2.2.6

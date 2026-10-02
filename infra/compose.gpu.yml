@@ -1,0 +1,41 @@
+name: knowledge-gpu
+x-model: &model
+  build:
+    context: ..
+    dockerfile: infra/docker/Dockerfile.gpu
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  shm_size: 1gb
+  mem_limit: 12g
+  cpus: 4
+  security_opt: [no-new-privileges:true]
+services:
+  bge-m3:
+    <<: *model
+    ports: ["${GPU_BIND_IP:-127.0.0.1}:8100:8080"]
+    environment:
+      MODEL_ROLE: embedding
+      MODEL_PATH: /models/model
+      MODEL_REVISION: ${BGE_MODEL_REVISION:?pin model revision}
+      SERVICE_TOKEN: ${BGE_SERVICE_TOKEN:?required}
+      MAX_LENGTH: 2048
+    volumes: ["${BGE_MODEL_PATH:?local pinned snapshot}:/models/model:ro"]
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, device_ids: ["${BGE_GPU_ID:-0}"], capabilities: [gpu]}]
+  bge-reranker:
+    <<: *model
+    ports: ["${GPU_BIND_IP:-127.0.0.1}:8101:8080"]
+    environment:
+      MODEL_ROLE: reranker
+      MODEL_PATH: /models/model
+      MODEL_REVISION: ${RERANKER_MODEL_REVISION:?pin model revision}
+      SERVICE_TOKEN: ${RERANKER_SERVICE_TOKEN:?required}
+      MAX_LENGTH: 512
+    volumes: ["${RERANKER_MODEL_PATH:?local pinned snapshot}:/models/model:ro"]
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, device_ids: ["${RERANKER_GPU_ID:-0}"], capabilities: [gpu]}]

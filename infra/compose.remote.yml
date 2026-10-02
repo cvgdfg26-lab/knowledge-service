@@ -1,0 +1,64 @@
+# Isolated business deployment on the existing CPU host. Existing stores are reused.
+name: knowledge-remote
+services:
+  mongodb:
+    image: mongo:8.2.6
+    ports: ["127.0.0.1:27018:27018"]
+    restart: unless-stopped
+    entrypoint: [/bin/sh, /bootstrap/mongo-entrypoint.sh]
+    environment:
+      MONGO_PORT: "27018"
+      MONGO_BIND_IP: 0.0.0.0
+      MONGO_INITDB_ROOT_USERNAME: kb-root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?required}
+    secrets: [mongo_key]
+    volumes: ["mongo-data:/data/db", "./scripts/mongo-entrypoint.sh:/bootstrap/mongo-entrypoint.sh:ro"]
+    mem_limit: 1g
+    cpus: 1
+  kb-import:
+    extends: {file: compose.existing.yml, service: kb-import}
+    build:
+      args:
+        PYPI_INDEX_URL: https://mirrors.cloud.tencent.com/pypi/simple
+        PYPI_FILES_BASE: https://mirrors.cloud.tencent.com/pypi
+    command: [uvicorn, knowledge_service.import_app:app, --host, 127.0.0.1, --port, "18000", --root-path, /import]
+    environment:
+      MONGODB_URI: mongodb://kb_import:${MONGO_IMPORT_PASSWORD:?required}@127.0.0.1:27018/knowledge_service_dev?authSource=knowledge_service_dev&replicaSet=rs0
+  kb-query:
+    extends: {file: compose.existing.yml, service: kb-query}
+    command: [uvicorn, knowledge_service.query_app:app, --host, 127.0.0.1, --port, "18001", --root-path, /query]
+    environment:
+      MONGODB_URI: mongodb://kb_query:${MONGO_QUERY_PASSWORD:?required}@127.0.0.1:27018/knowledge_service_dev?authSource=knowledge_service_dev&replicaSet=rs0
+  kb-worker:
+    extends: {file: compose.existing.yml, service: kb-worker}
+    environment:
+      MONGODB_URI: mongodb://kb_worker:${MONGO_WORKER_PASSWORD:?required}@127.0.0.1:27018/knowledge_service_dev?authSource=knowledge_service_dev&replicaSet=rs0
+  kb-admin:
+    extends: {file: compose.existing.yml, service: kb-worker}
+    profiles: [tools]
+    restart: "no"
+    entrypoint: [knowledge-service]
+    command: [doctor]
+    environment:
+      MONGODB_URI: ${MONGODB_URI:?required}
+      MONGODB_BOOTSTRAP_URI: ${MONGODB_BOOTSTRAP_URI:?required}
+      MONGODB_REPLICA_HOST: 127.0.0.1:27018
+      MONGO_IMPORT_PASSWORD: ${MONGO_IMPORT_PASSWORD:?required}
+      MONGO_QUERY_PASSWORD: ${MONGO_QUERY_PASSWORD:?required}
+      MONGO_WORKER_PASSWORD: ${MONGO_WORKER_PASSWORD:?required}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?required}
+      SEED_MAINTAINER_PASSWORD: ${SEED_MAINTAINER_PASSWORD:?required}
+      SEED_REVIEWER_PASSWORD: ${SEED_REVIEWER_PASSWORD:?required}
+      SEED_READER_PASSWORD: ${SEED_READER_PASSWORD:?required}
+      SEED_OUTSIDER_PASSWORD: ${SEED_OUTSIDER_PASSWORD:?required}
+  gateway:
+    image: nginx:1.28.0-alpine
+    network_mode: host
+    restart: unless-stopped
+    volumes: ["./nginx/remote.conf:/etc/nginx/conf.d/default.conf:ro"]
+    depends_on: [kb-import, kb-query]
+volumes:
+  mongo-data:
+secrets:
+  mongo_key:
+    file: ./secrets/mongo-key

@@ -1,0 +1,73 @@
+# Linux CPU-host deployment. Reuses host-published stores and CPU-host SSH tunnel ports.
+name: knowledge-existing
+x-app: &app
+  image: knowledge-backend:0.1.0
+  build:
+    context: ..
+    dockerfile: infra/docker/Dockerfile.backend
+  network_mode: host
+  restart: unless-stopped
+  init: true
+  read_only: true
+  tmpfs: [/tmp]
+  mem_limit: 2g
+  cpus: 2
+  security_opt: [no-new-privileges:true]
+x-common: &common
+  APP_ENV: ${APP_ENV:-dev}
+  MONGODB_URI: ${MONGODB_URI:?import existing config}
+  MONGODB_DATABASE: ${MONGODB_DATABASE:?import existing config}
+  GRAPH_CHECKPOINT_DATABASE: ${GRAPH_CHECKPOINT_DATABASE:?import existing config}
+  MINIO_ENDPOINT: ${MINIO_ENDPOINT:?required}
+  MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?required}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?required}
+  MINIO_USE_TLS: ${MINIO_USE_TLS:-false}
+  ORIGINALS_BUCKET: ${ORIGINALS_BUCKET:?required}
+  DERIVED_BUCKET: ${DERIVED_BUCKET:?required}
+  IMAGES_BUCKET: ${IMAGES_BUCKET:?required}
+  MILVUS_URI: ${MILVUS_URI:-http://127.0.0.1:19530}
+  MILVUS_TOKEN: ${MILVUS_TOKEN:-}
+  MILVUS_COLLECTION: ${MILVUS_COLLECTION:-kb_chunks_g001_bge1024}
+  GENERATION: ${GENERATION:-g001}
+  NEO4J_URI: ${NEO4J_URI:-bolt://127.0.0.1:7687}
+  NEO4J_USER: ${NEO4J_USER:?required}
+  NEO4J_PASSWORD: ${NEO4J_PASSWORD:?required}
+  NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
+  BGE_M3_ENDPOINT: ${BGE_M3_ENDPOINT:-}
+  BGE_API_FORMAT: ${BGE_API_FORMAT:-native}
+  BGE_M3_SERVICE_URL: ${BGE_M3_SERVICE_URL:-}
+  BGE_MODEL_REVISION: ${BGE_MODEL_REVISION:-}
+  BGE_SERVICE_TOKEN: ${BGE_SERVICE_TOKEN:-}
+  RERANKER_ENDPOINT: ${RERANKER_ENDPOINT:-}
+  RERANKER_API_FORMAT: ${RERANKER_API_FORMAT:-native}
+  RERANKER_SERVICE_URL: ${RERANKER_SERVICE_URL:-}
+  RERANKER_MODEL_REVISION: ${RERANKER_MODEL_REVISION:-}
+  RERANKER_SERVICE_TOKEN: ${RERANKER_SERVICE_TOKEN:-}
+  ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:8000","http://localhost:8001"]}
+  TRUSTED_HOSTS: ${TRUSTED_HOSTS:-["localhost","127.0.0.1"]}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+services:
+  kb-import:
+    <<: *app
+    command: [uvicorn, knowledge_service.import_app:app, --host, 127.0.0.1, --port, "8000"]
+    environment:
+      <<: *common
+  kb-query:
+    <<: *app
+    command: [uvicorn, knowledge_service.query_app:app, --host, 127.0.0.1, --port, "8001"]
+    environment:
+      <<: *common
+      LLM_PROVIDER: ${LLM_PROVIDER:-vllm}
+      LLM_BASE_URL: ${LLM_BASE_URL:?required}
+      LLM_MODEL: ${LLM_MODEL:?required}
+      LLM_API_KEY: ${LLM_API_KEY:?required}
+      LLM_DISABLE_THINKING: ${LLM_DISABLE_THINKING:-false}
+  kb-worker:
+    <<: *app
+    command: [knowledge-service, worker]
+    environment:
+      <<: *common
+      MINERU_API_BASE_URL: ${MINERU_API_BASE_URL:-https://mineru.net/api/v4}
+      MINERU_API_TOKEN: ${MINERU_API_TOKEN:-}
+      MINERU_MODEL_VERSION: ${MINERU_MODEL_VERSION:-pipeline}
+      MINERU_TRANSFER_HOSTS: ${MINERU_TRANSFER_HOSTS:-[]}

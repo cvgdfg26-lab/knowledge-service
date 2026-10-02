@@ -1,0 +1,12 @@
+name: knowledge-evaluation
+services:
+  evaluator:
+    extends: {file: compose.remote.yml, service: kb-query}
+    image: knowledge-evaluator:0.1.0
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.eval
+    restart: "no"
+    user: "1000:1000"
+    command: [--input, /workspace/qa.csv, --output, /workspace/eval_result.csv]
+    volumes: ["../eval:/workspace"]

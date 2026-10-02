@@ -1,0 +1,1 @@
+{"dataset":"evals/questions.example.jsonl","user_id":"reader","kb_ids":["kb_education"],"mode":"hybrid","rerank":true}

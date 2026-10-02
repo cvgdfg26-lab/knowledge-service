@@ -1,0 +1,21 @@
+[project]
+name = "knowledge-ragas-evaluation"
+version = "0.1.0"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "knowledge-service", "ragas==0.4.3", "langchain-openai>=1,<2",
+  "langchain-community==0.3.31",
+]
+
+[tool.uv.sources]
+knowledge-service = { path = "../backend", editable = true }
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["knowledge_service"]
